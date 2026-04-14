@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Nobanno | Forever</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* Essential CSS for Layer Fix */
+        body, html {
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: "Times New Roman", Times, serif !important;
+            /* IMAGE FIX: Background directly on body ensures it stays below everything */
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('couple.jpg') no-repeat center center/cover !important;
+            background-attachment: fixed !important;
+        }
+
+        /* Cinematic Vignette Overlay */
+        .vignette-layer {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, transparent 30%, rgba(0,0,0,0.85) 100%);
+            z-index: 1; /* Lowest top layer */
+            pointer-events: none;
+        }
+
+        /* Heart Particles Layer */
+        #heart-field {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10; /* Above vignette, below card */
+        }
+
+        .h-particle {
+            position: absolute;
+            bottom: -60px;
+            color: #ff3366;
+            animation: flyUp linear forwards;
+            filter: drop-shadow(0 0 10px #ff3366);
+        }
+
+        @keyframes flyUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            15% { opacity: 1; }
+            100% { transform: translateY(-115vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Glass UI Card */
+        .glass-card {
+            background: rgba(0, 0, 0, 0.7) !important;
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 40px;
+            padding: 60px 40px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 40px 100px rgba(0,0,0,1);
+            position: relative;
+            z-index: 100; /* Main UI always on top */
+        }
+
+        .btn-yes {
+            background: linear-gradient(135deg, #ff1744, #ff5e62) !important;
+            padding: 16px 50px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 1.3rem;
+            color: white !important;
+            box-shadow: 0 10px 30px rgba(255, 23, 68, 0.5);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-no {
+            padding: 12px 35px;
+            border-radius: 50px;
+            border: 1px solid #777;
+            color: #ccc;
+            transition: 0.1s;
+        }
+
+        /* Success/Sad Overlay */
+        #final-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000; /* Highest possible layer */
+            text-align: center;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="vignette-layer"></div>
+    <div id="heart-field"></div>
+    <audio id="audio" loop><source src="romantic.mp3" type="audio/mpeg"></audio>
+
+    <div class="glass-card" id="ui-wrapper">
+        <div id="step-story">
+            <h1 id="text-target" class="text-3xl italic text-rose-100 min-h-[140px] flex items-center justify-center"></h1>
+        </div>
+
+        <div id="step-love" class="hidden">
+            <h2 class="text-4xl font-bold mb-6 text-white">Ekta kotha chilo...</h2>
+            <p class="text-2xl text-rose-200 italic mb-10">Tumi ki amake sotti bhalobasho?</p>
+            <div class="flex gap-6 justify-center">
+                <button onclick="showProposal()" class="btn-yes">YES</button>
+                <button onclick="showSad()" class="btn-no">No</button>
+            </div>
+        </div>
+
+        <div id="step-marry" class="hidden">
+            <h2 class="text-5xl font-bold mb-6 text-white">Nobanno,</h2>
+            <p class="text-2xl text-rose-200 italic mb-10">Will you marry me?</p>
+            <div class="flex flex-col sm:flex-row gap-8 justify-center items-center">
+                <button onclick="celebrate()" class="btn-yes">YES, I WILL</button>
+                <button id="no-dodge" onmouseover="dodge()" class="btn-no">No</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="final-overlay"></div>
+
+    <script>
+        const storyLines = [
+            "Tumar oi hat dhorar muhurto ta...",
+            "Amar jiboner shrestho golpo .",
+            "Tumi amar manoshik shanti Nobanno.",
+            "Ami tomake kisu bolte chai..."
+        ];
+
+        let lineIdx = 0;
+        const textTarget = document.getElementById('text-target');
+        const song = document.getElementById('audio');
+
+        function runStory() {
+            if (lineIdx < storyLines.length) {
+                textTarget.style.opacity = 0;
+                setTimeout(() => {
+                    textTarget.innerText = storyLines[lineIdx];
+                    textTarget.style.opacity = 1;
+                    textTarget.style.transition = "opacity 0.8s";
+                    lineIdx++;
+                    setTimeout(runStory, 3500);
+                }, 800);
+            } else {
+                document.getElementById('step-story').classList.add('hidden');
+                document.getElementById('step-love').classList.remove('hidden');
+            }
+        }
+
+        function showProposal() {
+            document.getElementById('step-love').classList.add('hidden');
+            document.getElementById('step-marry').classList.remove('hidden');
+        }
+
+        function showSad() {
+            const overlay = document.getElementById('final-overlay');
+            overlay.style.display = 'flex';
+            overlay.innerHTML = `
+                <div class="p-10">
+                    <p class="text-2xl text-gray-300 italic">Oh... achha... <br> Hoyto amar bhalobashay kono komti chilo. <br> Jekhanei thako, bhalo thako. 😊</p>
+                    <div class="mt-10 text-8xl opacity-30">💔</div>
+                </div>
+            `;
+        }
+
+        function celebrate() {
+            song.play();
+            const overlay = document.getElementById('final-overlay');
+            overlay.style.display = 'flex';
+            overlay.innerHTML = `
+                <h1 class="text-7xl md:text-9xl text-rose-500 font-bold italic mb-6">Kobol...</h1>
+                <h1 class="text-7xl md:text-9xl text-rose-500 font-bold italic mb-6">Kobol...</h1>
+                <h1 class="text-7xl md:text-9xl text-rose-500 font-bold italic mb-10">Kobol...</h1>
+                <p class="text-3xl text-white tracking-[8px] uppercase">NOW YOU ARE MINE ,shovo noboborsho  ❤️</p>
+                <div class="mt-14 text-9xl animate-bounce">💍</div>
+            `;
+
+            var end = Date.now() + (15 * 1000);
+            (function frame() {
+                confetti({ particleCount: 10, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ff1744', '#ffffff'] });
+                confetti({ particleCount: 10, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ff1744', '#ffffff'] });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+
+        function createHeart() {
+            const field = document.getElementById('heart-field');
+            const h = document.createElement('div');
+            h.innerHTML = '❤️';
+            h.className = 'h-particle';
+            h.style.left = Math.random() * 100 + 'vw';
+            h.style.fontSize = (Math.random() * 20 + 20) + 'px';
+            h.style.animationDuration = (Math.random() * 3 + 4) + 's';
+            field.appendChild(h);
+            setTimeout(() => h.remove(), 7000);
+        }
+        setInterval(createHeart, 300);
+
+        function dodge() {
+            const btn = document.getElementById('no-dodge');
+            btn.style.position = 'fixed';
+            btn.style.left = Math.random() * (window.innerWidth - 120) + 'px';
+            btn.style.top = Math.random() * (window.innerHeight - 60) + 'px';
+            btn.style.zIndex = "2000";
+        }
+
+        window.onload = () => {
+            setTimeout(runStory, 1000);
+            document.body.addEventListener('click', () => song.play(), { once: true });
+        };
+    </script>
+</body>
+</html>
